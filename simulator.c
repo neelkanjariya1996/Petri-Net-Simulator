@@ -3,6 +3,8 @@
 #include <string.h>
 
 #define MAX_INSTRUCTIONS 16
+#define MAX_DATAMEMORY 8
+#define MAX_REGISTERS 8
 
 int
 read_datamemory_file(int M[], int number_of_memory_locations) {
@@ -71,7 +73,7 @@ int
 read_register_file(int R[], int number_of_registers) {
 
 	FILE *read_registers;
-        char str[6];
+        char str[8];
         char *pch;
         int register_index = 0;
         int register_value = 0;
@@ -131,18 +133,11 @@ update_register_file(int R[], int number_of_registers) {
 }
 
 int
-read_instructions(int opcode[], int destination_register[], int first_source_operand[], int second_source_operand[]) {
+instruction_count() {
 
 	FILE *read_instructions;
-        char str[15];
-        char *pch;
-        int ret;
-        int i = 0;
 	char c;
 	int number_of_instructions = 0;
-	int dest_reg = 0;
-	int first_source = 0;
-	int second_source = 0;
 
         read_instructions = fopen("instructions.txt", "r");
         if (read_instructions == NULL) {
@@ -155,11 +150,25 @@ read_instructions(int opcode[], int destination_register[], int first_source_ope
 			number_of_instructions = number_of_instructions + 1;
 		}
 	}
+	printf("The number of instructions = %d\n", number_of_instructions);
 
 	fclose(read_instructions);
-       	
-	printf("The number of instructions = %d\n", number_of_instructions);
-       		
+	
+	return number_of_instructions;
+}
+
+int
+read_instructions(int opcode[], int destination_register[], int first_source_operand[], int second_source_operand[], int number_of_instructions) {
+
+	FILE *read_instructions;
+        char str[15];
+        char *pch;
+        int ret;
+        int i = 0;
+	int dest_reg = 0;
+	int first_source = 0;
+	int second_source = 0;
+
 	read_instructions = fopen("instructions.txt", "r");
         if (read_instructions == NULL) {
                 fprintf(stderr, "Error reading file\n");
@@ -213,7 +222,7 @@ read_instructions(int opcode[], int destination_register[], int first_source_ope
 			i++;
 		}
         }
-	
+/*	
 	if (number_of_instructions <= MAX_INSTRUCTIONS) {
 		for (i = 0; i < number_of_instructions; i++) {
 			printf("Instruction = %d\t   Opcode = %d\t   Destination Register = %d\t", i, opcode[i], destination_register[i]); 
@@ -221,27 +230,112 @@ read_instructions(int opcode[], int destination_register[], int first_source_ope
 		}
 
 	}
-	
+*/	
         fclose(read_instructions);
 
         return 0;
 }
 
+void
+print_registers(int R[]) {
+
+	int i = 0;
+
+	for (i = 0; i < MAX_REGISTERS; i++) {
+		printf("<R%d,%d>", i, R[i]);
+	}
+	printf("\n");
+
+}
+
+
+void
+print_datamemory(int M[]) {
+
+	int i = 0;
+
+	for (i = 0; i < MAX_DATAMEMORY; i++) {
+		printf("<%d,%d>", i, M[i]);
+	}
+	printf("\n");
+
+}
+
+void
+performing_instructions (int R[], int M[], int opcode[], int destination_register[], int first_source_operand[], int second_source_operand[], int number_of_instructions) {
+
+	int d = 0;
+	int s1 = 0;
+	int s2 = 0;
+	int i = 0;
+	int ld = 0;
+
+	for (i = 0; i < number_of_instructions; i++) {
+		
+		d = destination_register[i];
+		s1 = first_source_operand[i];
+		s2 = second_source_operand[i];
+		
+		printf("INSTRUCTION: %d\n", i);
+		if (opcode[i] == 1) {
+			R[d] = R[s1] + R[s2];
+			update_register_file(R, MAX_REGISTERS);
+			print_registers(R);
+		} else if (opcode[i] == 2) {
+			R[d] = R[s1] - R[s2];
+			update_register_file(R, MAX_REGISTERS);
+			print_registers(R);
+		} else if (opcode[i] == 3) {
+			R[d] = R[s1] && R[s2];
+			update_register_file(R, MAX_REGISTERS);
+			print_registers(R);
+		} else if (opcode[i] == 4) {
+			R[d] = R[s1] || R[s2];
+			update_register_file(R, MAX_REGISTERS);
+			print_registers(R);
+		} else if (opcode[i] == 5) {
+			ld = R[s1] + R[s2];
+			R[d] = M[ld];
+			update_register_file(R, MAX_REGISTERS);
+			print_registers(R);
+		}
+
+	}
+
+	printf("\n");
+
+}
+
 int
 main () {
 
-	 int R[8] = {0};
-	 int M[8] = {0};
+	 int R[MAX_REGISTERS] = {0};
+	 int M[MAX_DATAMEMORY] = {0};
 	 int opcode[MAX_INSTRUCTIONS] = {0};
 	 int destination_register[MAX_INSTRUCTIONS] = {0};
 	 int first_source_operand[MAX_INSTRUCTIONS] = {0};
 	 int second_source_operand[MAX_INSTRUCTIONS] = {0};
+	 int number_of_instructions = 0;
+	 
+	 number_of_instructions = instruction_count();
+	 if(number_of_instructions > MAX_INSTRUCTIONS) {
+		 printf("MAXIMUM NUMBER OF INSTRUCTIONS ALLOWED IS 16\n");
+		 return 0;
+	 }
 
-	 read_register_file(R, 8);
-	 update_register_file(R, 8);
-         read_datamemory_file(M, 8);
-         update_datamemory_file(M, 8);
-	 read_instructions(opcode, destination_register, first_source_operand, second_source_operand);
+	 //printf("HII\n");
+	 read_register_file(R, MAX_REGISTERS);
+	 //printf("reading register file\n");
+	 update_register_file(R, MAX_REGISTERS);
+	 //printf("updating register fie\n");
+         read_datamemory_file(M, MAX_DATAMEMORY);
+	 //printf("reading data memory\n");
+         update_datamemory_file(M, MAX_DATAMEMORY);
+	 //printf("updating data memory\n");
+	 read_instructions(opcode, destination_register, first_source_operand, second_source_operand, number_of_instructions);
+	 //printf("reading instructions\n");
+	 performing_instructions (R, M, opcode, destination_register, first_source_operand, second_source_operand, number_of_instructions);
+	 //printf("performing instructions\n");
 
          return 0;
 }
