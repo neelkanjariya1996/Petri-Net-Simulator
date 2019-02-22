@@ -6,44 +6,6 @@
 #define MAX_DATAMEMORY 8			//MAximum number of memory locations allowed
 #define MAX_REGISTERS 8				//Maximum number of registers
 
-typedef struct inm_t_ {
-	int opcode[MAX_INSTRUCTIONS];
-	int dest_reg[MAX_REGISTERS];
-	int src1[MAX_REGISTERS];
-	int src2[MAX_REGISTERS];
-} inm_t;
-
-typedef struct inb_t_ {
-	int opcode[MAX_INSTRUCTIONS];
-	int dest_reg[MAX_REGISTERS];
-	int src1[MAX_REGISTERS];
-	int src2[MAX_REGISTERS];
-} inb_t;
-
-typedef struct lib_t_ {
-	int opcode[MAX_INSTRUCTIONS];
-	int dest_reg[MAX_REGISTERS];
-	int src1[MAX_REGISTERS];
-	int src2[MAX_REGISTERS];
-} lib_t;
-
-typedef struct aib_t_ {
-	int opcode[MAX_INSTRUCTIONS];
-	int dest_reg[MAX_REGISTERS];
-	int src1[MAX_REGISTERS];
-	int src2[MAX_REGISTERS];
-} aib_t;
-
-typedef struct adb_t_ {
-	int dest_reg[MAX_REGISTERS];
-	int mem_add;
-} adb_t;
-
-typedef struct reb_t_ {
-	int dest_reg[MAX_REGISTERS];
-	int val;
-} reb_t;
-
 int
 read_datamemory_file(int M[], int number_of_memory_locations) {
 
