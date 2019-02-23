@@ -336,6 +336,63 @@ performing_inst (inm_t inm[], dam_t dam[], rgf_t rgf[], int num_of_inst) {
 
 }
 
+void
+decode (inm_t inm[], inb_t inb[], rgf_t rgf[]) {
+	
+	int read_count_inm = 0;
+	int write_count_inb = 0;
+	int s1 = 0;
+	int s2 = 0;
+
+	s1 = inm[read_count_inm].src1;
+	s2 = inm[read_count_inm].src2;
+	
+	inb[write_count_inb].opcode = inm[read_count_inm].opcode;
+	inb[write_count_inb].dest_reg = inm[read_count_inm].dest_reg;
+	inb[write_count_inb].src1 = rgf[s1].reg_val;
+	inb[write_count_inb].src2 = rgf[s2].reg_val;
+	
+	read_count_inm++;
+	write_count_inb++;
+}
+
+void
+issue1 (inb_t inb[], lib_t lib[]) {
+
+	int read_count_inb = 0;
+	int write_count_lib = 0;
+
+	if (inb[read_count_inb].opcode == 5) { 
+		lib[write_count_lib].opcode = inb[read_count_inb].opcode;
+		lib[write_count_lib].dest_reg = inb[read_count_inb].dest_reg;
+		lib[write_count_lib].src1 = inb[read_count_inb].src1;
+		lib[write_count_lib].src2 = inb[read_count_inb].src2;
+		read_count_inb++;
+		write_count_lib++;
+	} else {
+		return;
+	} 
+}
+
+void
+issue2 (inb_t inb[], aib_t aib[]) {
+
+	int read_count_inb = 0;
+	int write_count_aib = 0;
+
+	if (inb[read_count_inb].opcode == 1 || inb[read_count_inb].opcode == 2 || inb[read_count_inb].opcode == 3 || inb[read_count_inb].opcode == 4) { 
+		aib[write_count_aib].opcode = inb[read_count_inb].opcode;
+		aib[write_count_aib].dest_reg = inb[read_count_inb].dest_reg;
+		aib[write_count_aib].src1 = inb[read_count_inb].src1;
+		aib[write_count_aib].src2 = inb[read_count_inb].src2;
+	
+		read_count_inb++;
+		write_count_aib++;
+	} else {
+		return;
+	} 
+}
+
 int
 main () {
 
@@ -360,7 +417,19 @@ main () {
 	read_reg (rgf);
 	update_reg (rgf);
 	read_inst (inm, num_of_inst);
-	performing_inst (inm, dam, rgf, num_of_inst); 
-	
+	performing_inst (inm, dam, rgf, num_of_inst);
+	decode(inm, inb, rgf);
+	for (int i = 0; i < num_of_inst; i++) {
+		printf("inst:%d\t opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", i, inb[i].opcode, inb[i].dest_reg, inb[i].src1, inb[i].src2);
+	}
+	issue1(inb, lib);
+	for (int i = 0; i < num_of_inst; i++) {
+		printf("inst:%d\t opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", i, lib[i].opcode, lib[i].dest_reg, lib[i].src1, lib[i].src2);
+	}
+	issue2(inb, aib);
+	for (int i = 0; i < num_of_inst; i++) {
+		printf("inst:%d\t opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", i, aib[i].opcode, aib[i].dest_reg, aib[i].src1, aib[i].src2);
+	}
+		
 	return 0;
 }
