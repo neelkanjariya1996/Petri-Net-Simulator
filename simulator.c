@@ -284,43 +284,10 @@ read_inst(int opcode[], int dest_reg[], int src1[], int src2[], int num_of_inst)
 			i++;
 		}
         }
-/*	
-	if (number_of_instructions <= MAX_INSTRUCTIONS) {
-		for (i = 0; i < number_of_instructions; i++) {
-			printf("Instruction = %d\t   Opcode = %d\t   Destination Register = %d\t", i, opcode[i], destination_register[i]); 
-			printf("First Source operand = %d\t   Second Source operand = %d\n", first_source_operand[i], second_source_operand[i]);
-		}
-
-	}
-*/	
-        fclose(read_inst);
+        
+	fclose(read_inst);
 
         return 0;
-}
-
-void
-print_registers(int R[]) {
-
-	int i = 0;
-
-	for (i = 0; i < MAX_REGISTERS; i++) {
-		printf("<R%d,%d>", i, R[i]);
-	}
-	printf("\n");
-
-}
-
-
-void
-print_datamemory(int M[]) {
-
-	int i = 0;
-
-	for (i = 0; i < MAX_DATAMEMORY; i++) {
-		printf("<%d,%d>", i, M[i]);
-	}
-	printf("\n");
-
 }
 
 void
@@ -342,24 +309,24 @@ performing_inst (int R[], int M[], int opcode[], int dest_reg[], int src1[], int
 		if (opcode[i] == 1) {
 			R[d] = R[s1] + R[s2];
 			update_reg(R);
-			print_registers(R);
+			print_rgf(R);
 		} else if (opcode[i] == 2) {
 			R[d] = R[s1] - R[s2];
 			update_reg(R);
-			print_registers(R);
+			print_rgf(R);
 		} else if (opcode[i] == 3) {
 			R[d] = R[s1] && R[s2];
 			update_reg(R);
-			print_registers(R);
+			print_rgf(R);
 		} else if (opcode[i] == 4) {
 			R[d] = R[s1] || R[s2];
 			update_reg(R);
-			print_registers(R);
+			print_rgf(R);
 		} else if (opcode[i] == 5) {
 			ld = R[s1] + R[s2];
 			R[d] = M[ld];
 			update_reg(R);
-			print_registers(R);
+			print_rgf(R);
 		}
 
 	}
@@ -378,12 +345,19 @@ main () {
 	 int src1[MAX_INSTRUCTIONS] = {0};
 	 int src2[MAX_INSTRUCTIONS] = {0};
 	 int num_of_inst = 0;
+	 int active_token[6] = {0};	//[0] = inm, [1] = inb, [2] = aib, [3] = lib, [4] = adb, [5] = reb
 	 
 	 num_of_inst = inst_count();
 	 if(num_of_inst > MAX_INSTRUCTIONS) {
 		 printf("MAXIMUM NUMBER OF INSTRUCTIONS ALLOWED IS 16\n");
 		 return 0;
 	 }
+
+	 active_token[0] = num_of_inst;
+	 for (int i = 0; i < 6; i++) {
+	 	printf("active_token[%d] = %d\n", i, active_token[i]);
+	}
+
 
 	 read_reg(R);
 	 update_reg(R);
@@ -393,6 +367,11 @@ main () {
 	 performing_inst(R, M, opcode, dest_reg, src1, src2, num_of_inst);
 	 print_rgf(R);
 	 print_dam(M);
+
+	 while (active_token[0] != 0 || active_token[1] != 0 || active_token[2] != 0 || active_token[3] != 0 || active_token[4] != 0 || active_token[5] != 0) {
+		
+	 
+	 }
 
          return 0;
 }
