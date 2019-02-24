@@ -6,6 +6,18 @@
 #define MAX_REGISTERS 8
 #define MAX_DATAMEMORY 8
 
+int read_count_inm = 0;
+int write_count_inb = 0;
+int read_count_inb = 0;
+int write_count_lib = 0;
+int read_count_lib = 0;
+int write_count_aib = 0;
+int read_count_aib = 0;
+int write_count_adb = 0;
+int read_count_adb = 0;
+int write_count_reb = 0;
+int read_count_reb = 0;
+
 typedef struct inm_t_ {
 	int opcode;
 	int dest_reg;
@@ -36,12 +48,12 @@ typedef struct aib_t_ {
 
 typedef struct adb_t_ {
 	int dest_reg;
-	int val;
+	int mem_loc;
 } adb_t;
 
 typedef struct reb_t_ {
 	int dest_reg;
-	int val;
+	int reg_val;
 } reb_t;
 
 typedef struct dam_t_ {
@@ -339,11 +351,9 @@ performing_inst (inm_t inm[], dam_t dam[], rgf_t rgf[], int num_of_inst) {
 void
 decode (inm_t inm[], inb_t inb[], rgf_t rgf[]) {
 	
-	int read_count_inm = 0;
-	int write_count_inb = 0;
 	int s1 = 0;
 	int s2 = 0;
-
+	
 	s1 = inm[read_count_inm].src1;
 	s2 = inm[read_count_inm].src2;
 	
@@ -358,39 +368,77 @@ decode (inm_t inm[], inb_t inb[], rgf_t rgf[]) {
 
 void
 issue1 (inb_t inb[], lib_t lib[]) {
-
-	int read_count_inb = 0;
-	int write_count_lib = 0;
-
+	
+	printf("inside function issue 1\n");
 	if (inb[read_count_inb].opcode == 5) { 
 		lib[write_count_lib].opcode = inb[read_count_inb].opcode;
 		lib[write_count_lib].dest_reg = inb[read_count_inb].dest_reg;
 		lib[write_count_lib].src1 = inb[read_count_inb].src1;
 		lib[write_count_lib].src2 = inb[read_count_inb].src2;
-		read_count_inb++;
-		write_count_lib++;
-	} else {
-		return;
 	} 
+	
+	printf("opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", lib[write_count_lib].opcode, lib[write_count_lib].dest_reg, lib[write_count_lib].src1, lib[write_count_lib].src2);
+	read_count_inb++;
+	write_count_lib++;
 }
 
 void
 issue2 (inb_t inb[], aib_t aib[]) {
 
-	int read_count_inb = 0;
-	int write_count_aib = 0;
-
+	printf("inside function issue 2\n");
 	if (inb[read_count_inb].opcode == 1 || inb[read_count_inb].opcode == 2 || inb[read_count_inb].opcode == 3 || inb[read_count_inb].opcode == 4) { 
 		aib[write_count_aib].opcode = inb[read_count_inb].opcode;
 		aib[write_count_aib].dest_reg = inb[read_count_inb].dest_reg;
 		aib[write_count_aib].src1 = inb[read_count_inb].src1;
 		aib[write_count_aib].src2 = inb[read_count_inb].src2;
+	}
 	
-		read_count_inb++;
-		write_count_aib++;
-	} else {
-		return;
-	} 
+	printf("opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", aib[write_count_aib].opcode, aib[write_count_aib].dest_reg, aib[write_count_aib].src1, aib[write_count_aib].src2);	
+	read_count_inb++;
+	write_count_aib++;
+}
+
+void
+addr (lib_t lib[], adb_t adb[]) {
+	
+	int mem_loc = lib[read_count_lib].src1 + lib[read_count_lib].src2;
+	printf("inside funtion addr\n");
+	if (lib[read_count_lib].opcode == 5) { 
+		adb[write_count_adb].dest_reg = lib[read_count_lib].dest_reg;
+		adb[write_count_adb].mem_loc = mem_loc;
+	}
+
+	printf("dest_reg:%d\t mem_loc:%d\t\n", adb[write_count_adb].dest_reg, adb[write_count_adb].mem_loc);
+	read_count_lib++;
+	write_count_adb++;
+}
+
+void
+load (adb_t adb[], reb_t reb[], dam_t dam[]) {
+	
+	int mem_loc = adb[read_count_adb].mem_loc;
+
+	printf("inside function load\n");
+	reb[write_count_reb].dest_reg = adb[read_count_adb].dest_reg;
+	reb[write_count_reb].reg_val = dam[mem_loc].mem_val;
+
+	printf("dest_reg:%d\t reg_val:%d\t\n", reb[write_count_reb].dest_reg, reb[write_count_reb].reg_val);
+	read_count_adb++;
+	write_count_reb++;
+}
+
+void
+alu (aib_t aib[], reb_t reb[]) {
+
+	int reg_val = aib[read_count_aib].src1 + aib[read_count_aib].src2;
+
+	printf("inside function alu\n");
+	reb[write_count_reb].dest_reg = aib[read_count_aib].dest_reg;
+	reb[write_count_reb].reg_val = reg_val;
+	
+	printf("dest_reg:%d\t reg_val:%d\t\n", reb[write_count_reb].dest_reg, reb[write_count_reb].reg_val);
+	read_count_aib++;
+	write_count_reb++;
 }
 
 int
@@ -418,18 +466,24 @@ main () {
 	update_reg (rgf);
 	read_inst (inm, num_of_inst);
 	performing_inst (inm, dam, rgf, num_of_inst);
-	decode(inm, inb, rgf);
 	for (int i = 0; i < num_of_inst; i++) {
+		decode(inm, inb, rgf);
 		printf("inst:%d\t opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", i, inb[i].opcode, inb[i].dest_reg, inb[i].src1, inb[i].src2);
 	}
-	issue1(inb, lib);
+	
 	for (int i = 0; i < num_of_inst; i++) {
-		printf("inst:%d\t opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", i, lib[i].opcode, lib[i].dest_reg, lib[i].src1, lib[i].src2);
+		if (inb[read_count_inb].opcode == 1 || inb[read_count_inb].opcode == 2 || inb[read_count_inb].opcode == 3 || inb[read_count_inb].opcode == 4) { 
+			printf("Instruction=%d\n", i);
+			issue2(inb, aib);
+			alu (aib, reb);
+			printf("\n");
+		} else if (inb[read_count_inb].opcode == 5) { 
+			printf("Instruction=%d\n", i);
+			issue1(inb, lib);
+			addr (lib, adb); 
+			load (adb, reb, dam);
+			printf("\n");
+		}
 	}
-	issue2(inb, aib);
-	for (int i = 0; i < num_of_inst; i++) {
-		printf("inst:%d\t opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", i, aib[i].opcode, aib[i].dest_reg, aib[i].src1, aib[i].src2);
-	}
-		
 	return 0;
 }
