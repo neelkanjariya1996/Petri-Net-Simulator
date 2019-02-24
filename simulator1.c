@@ -6,18 +6,6 @@
 #define MAX_REGISTERS 8
 #define MAX_DATAMEMORY 8
 
-int read_count_inm = 0;
-int write_count_inb = 0;
-int read_count_inb = 0;
-int write_count_lib = 0;
-int read_count_lib = 0;
-int write_count_aib = 0;
-int read_count_aib = 0;
-int write_count_adb = 0;
-int read_count_adb = 0;
-int write_count_reb = 0;
-int read_count_reb = 0;
-
 typedef struct inm_t_ {
 	int opcode;
 	int dest_reg;
@@ -64,8 +52,93 @@ typedef struct rgf_t_ {
 	int reg_val;
 } rgf_t;
 
+inm_t inm[MAX_INSTRUCTIONS];
+inb_t inb[MAX_INSTRUCTIONS];
+aib_t aib[MAX_INSTRUCTIONS];
+lib_t lib[MAX_INSTRUCTIONS];
+adb_t adb[MAX_INSTRUCTIONS];
+reb_t reb[MAX_INSTRUCTIONS];
+rgf_t rgf[MAX_REGISTERS];
+dam_t dam[MAX_DATAMEMORY];
+
+int inm_head = 0;
+int inb_tail = 0;
+int inb_head = 0;
+int lib_tail = 0;
+int lib_head = 0;
+int aib_tail = 0;
+int aib_head = 0;
+int adb_tail = 0;
+int adb_head = 0;
+int reb_tail = 0;
+int reb_head = 0;
+
 void
-print_rgf (rgf_t rgf[]) {
+print_inm (int num_of_inst) {
+
+	int i = 0;
+
+	printf("INM:");
+	for (i = 0; i < num_of_inst; i++) {
+		
+		if (inm[i].opcode == 1) {
+			printf("<ADD,");
+		} else if (inm[i].opcode == 2) {
+			printf("<SUB,");
+		} else if (inm[i].opcode == 3) {
+			printf("<AND,");
+		} else if (inm[i].opcode == 4) {
+			printf("<OR,");
+		} else if (inm[i].opcode == 5) {
+			printf("<LD,");
+		}
+
+		printf("R%d,", inm[i].dest_reg);
+		printf("R%d,", inm[i].src1);
+		if (i < (num_of_inst - 1)) {
+			printf("R%d>,", inm[i].src2);
+		} else {
+			printf("R%d>", inm[i].src2);
+		}
+	}
+
+	printf("\n");
+
+}
+
+void
+print_inb ( int num_of_inst) {
+
+	printf("INB:");
+	for (int i = 0; i < num_of_inst; i++) {
+		
+		if (inb[i].opcode == 1) {
+			printf("<ADD,");
+		} else if (inb[i].opcode == 2) {
+			printf("<SUB,");
+		} else if (inb[i].opcode == 3) {
+			printf("<AND,");
+		} else if (inb[i].opcode == 4) {
+			printf("<OR,");
+		} else if (inb[i].opcode == 5) {
+			printf("<LD,");
+		}
+
+		printf("R%d,", inb[i].dest_reg);
+		printf("%d,", inb[i].src1);
+		if (i < (num_of_inst - 1)) {
+			printf("%d>,", inb[i].src2);
+		} else {
+			printf("%d>", inb[i].src2);
+		}
+	}
+
+	printf("\n");
+
+}
+
+void
+print_rgf () {
 
         int i = 0;
 
@@ -74,12 +147,13 @@ print_rgf (rgf_t rgf[]) {
                 printf("<R%d,%d>,", i, rgf[i].reg_val);
         }
         printf("<R7,%d>", rgf[7].reg_val);
-        printf("\n");
+        
+	printf("\n");
 
 }
 
 void
-print_dam (dam_t dam[]) {
+print_dam () {
 
         int i = 0;
 
@@ -88,12 +162,13 @@ print_dam (dam_t dam[]) {
                 printf("<%d,%d>,", i, dam[i].mem_val);
         }
         printf("<7,%d>", dam[i].mem_val);
-        printf("\n");
+        
+	printf("\n");
 
 }
 
 void
-read_dam(dam_t dam[]) {
+read_dam() {
 
         FILE *read_dam;
         char str[6];
@@ -132,7 +207,7 @@ read_dam(dam_t dam[]) {
 }
 
 void
-update_dam(dam_t dam[]) {
+update_dam() {
 
         FILE *read_dam;
         int i = 0;
@@ -153,7 +228,7 @@ update_dam(dam_t dam[]) {
 }
 
 void
-read_reg(rgf_t rgf[]) {
+read_reg() {
 
         FILE *read_reg;
         char str[8];
@@ -193,7 +268,7 @@ read_reg(rgf_t rgf[]) {
 }
 
 int
-update_reg(rgf_t rgf[]) {
+update_reg() {
 
         FILE *read_reg;
         int i = 0;
@@ -239,7 +314,7 @@ inst_count() {
 }
 
 void
-read_inst(inm_t inm[], int num_of_inst) {
+read_inst(int num_of_inst) {
 
         FILE *read_inst;
         char str[15];
@@ -304,7 +379,7 @@ read_inst(inm_t inm[], int num_of_inst) {
 }
 
 void
-performing_inst (inm_t inm[], dam_t dam[], rgf_t rgf[], int num_of_inst) {
+performing_inst (int num_of_inst) {
 
         int d = 0;
         int s1 = 0;
@@ -349,108 +424,108 @@ performing_inst (inm_t inm[], dam_t dam[], rgf_t rgf[], int num_of_inst) {
 }
 
 void
-decode (inm_t inm[], inb_t inb[], rgf_t rgf[]) {
+decode () {
 	
 	int s1 = 0;
 	int s2 = 0;
 	
-	s1 = inm[read_count_inm].src1;
-	s2 = inm[read_count_inm].src2;
+	s1 = inm[inm_head].src1;
+	s2 = inm[inm_head].src2;
 	
-	inb[write_count_inb].opcode = inm[read_count_inm].opcode;
-	inb[write_count_inb].dest_reg = inm[read_count_inm].dest_reg;
-	inb[write_count_inb].src1 = rgf[s1].reg_val;
-	inb[write_count_inb].src2 = rgf[s2].reg_val;
+	inb[inb_tail].opcode = inm[inm_head].opcode;
+	inb[inb_tail].dest_reg = inm[inm_head].dest_reg;
+	inb[inb_tail].src1 = rgf[s1].reg_val;
+	inb[inb_tail].src2 = rgf[s2].reg_val;
 	
-	read_count_inm++;
-	write_count_inb++;
+	inm_head++;
+	inb_tail++;
 }
 
 void
-issue1 (inb_t inb[], lib_t lib[]) {
+issue1 () {
 	
 	printf("inside function issue 1\n");
-	if (inb[read_count_inb].opcode == 5) { 
-		lib[write_count_lib].opcode = inb[read_count_inb].opcode;
-		lib[write_count_lib].dest_reg = inb[read_count_inb].dest_reg;
-		lib[write_count_lib].src1 = inb[read_count_inb].src1;
-		lib[write_count_lib].src2 = inb[read_count_inb].src2;
+	if (inb[inb_head].opcode == 5) { 
+		lib[lib_tail].opcode = inb[inb_head].opcode;
+		lib[lib_tail].dest_reg = inb[inb_head].dest_reg;
+		lib[lib_tail].src1 = inb[inb_head].src1;
+		lib[lib_tail].src2 = inb[inb_head].src2;
 	} 
 	
-	printf("opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", lib[write_count_lib].opcode, lib[write_count_lib].dest_reg, lib[write_count_lib].src1, lib[write_count_lib].src2);
-	read_count_inb++;
-	write_count_lib++;
+	printf("opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", lib[lib_tail].opcode, lib[lib_tail].dest_reg, lib[lib_tail].src1, lib[lib_tail].src2);
+	inb_head++;
+	lib_tail++;
 }
 
 void
-issue2 (inb_t inb[], aib_t aib[]) {
+issue2 () {
 
 	printf("inside function issue 2\n");
-	if (inb[read_count_inb].opcode == 1 || inb[read_count_inb].opcode == 2 || inb[read_count_inb].opcode == 3 || inb[read_count_inb].opcode == 4) { 
-		aib[write_count_aib].opcode = inb[read_count_inb].opcode;
-		aib[write_count_aib].dest_reg = inb[read_count_inb].dest_reg;
-		aib[write_count_aib].src1 = inb[read_count_inb].src1;
-		aib[write_count_aib].src2 = inb[read_count_inb].src2;
+	if (inb[inb_head].opcode == 1 || inb[inb_head].opcode == 2 || inb[inb_head].opcode == 3 || inb[inb_head].opcode == 4) { 
+		aib[aib_tail].opcode = inb[inb_head].opcode;
+		aib[aib_tail].dest_reg = inb[inb_head].dest_reg;
+		aib[aib_tail].src1 = inb[inb_head].src1;
+		aib[aib_tail].src2 = inb[inb_head].src2;
 	}
 	
-	printf("opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", aib[write_count_aib].opcode, aib[write_count_aib].dest_reg, aib[write_count_aib].src1, aib[write_count_aib].src2);	
-	read_count_inb++;
-	write_count_aib++;
+	printf("opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", aib[aib_tail].opcode, aib[aib_tail].dest_reg, aib[aib_tail].src1, aib[aib_tail].src2);	
+	inb_head++;
+	aib_tail++;
 }
 
 void
-addr (lib_t lib[], adb_t adb[]) {
+addr () {
 	
-	int mem_loc = lib[read_count_lib].src1 + lib[read_count_lib].src2;
+	int mem_loc = lib[lib_head].src1 + lib[lib_head].src2;
 	printf("inside funtion addr\n");
-	if (lib[read_count_lib].opcode == 5) { 
-		adb[write_count_adb].dest_reg = lib[read_count_lib].dest_reg;
-		adb[write_count_adb].mem_loc = mem_loc;
+	if (lib[lib_head].opcode == 5) { 
+		adb[adb_tail].dest_reg = lib[lib_head].dest_reg;
+		adb[adb_tail].mem_loc = mem_loc;
 	}
 
-	printf("dest_reg:%d\t mem_loc:%d\t\n", adb[write_count_adb].dest_reg, adb[write_count_adb].mem_loc);
-	read_count_lib++;
-	write_count_adb++;
+	printf("dest_reg:%d\t mem_loc:%d\t\n", adb[adb_tail].dest_reg, adb[adb_tail].mem_loc);
+	lib_head++;
+	adb_tail++;
 }
 
 void
-load (adb_t adb[], reb_t reb[], dam_t dam[]) {
+load () {
 	
-	int mem_loc = adb[read_count_adb].mem_loc;
+	int mem_loc = adb[adb_head].mem_loc;
 
 	printf("inside function load\n");
-	reb[write_count_reb].dest_reg = adb[read_count_adb].dest_reg;
-	reb[write_count_reb].reg_val = dam[mem_loc].mem_val;
+	reb[reb_tail].dest_reg = adb[adb_head].dest_reg;
+	reb[reb_tail].reg_val = dam[mem_loc].mem_val;
 
-	printf("dest_reg:%d\t reg_val:%d\t\n", reb[write_count_reb].dest_reg, reb[write_count_reb].reg_val);
-	read_count_adb++;
-	write_count_reb++;
+	printf("dest_reg:%d\t reg_val:%d\t\n", reb[reb_tail].dest_reg, reb[reb_tail].reg_val);
+	adb_head++;
+	reb_tail++;
 }
 
 void
-alu (aib_t aib[], reb_t reb[]) {
+alu () {
 
-	int reg_val = aib[read_count_aib].src1 + aib[read_count_aib].src2;
+	int reg_val = aib[aib_head].src1 + aib[aib_head].src2;
 
 	printf("inside function alu\n");
-	reb[write_count_reb].dest_reg = aib[read_count_aib].dest_reg;
-	reb[write_count_reb].reg_val = reg_val;
+	reb[reb_tail].dest_reg = aib[aib_head].dest_reg;
+	reb[reb_tail].reg_val = reg_val;
 	
-	printf("dest_reg:%d\t reg_val:%d\t\n", reb[write_count_reb].dest_reg, reb[write_count_reb].reg_val);
-	read_count_aib++;
-	write_count_reb++;
+	printf("dest_reg:%d\t reg_val:%d\t\n", reb[reb_tail].dest_reg, reb[reb_tail].reg_val);
+	aib_head++;
+	reb_tail++;
 }
 
 void
-write (reb_t reb[], rgf_t rgf[]) {
+write () {
 
-	int reg_name = reb[read_count_reb].dest_reg;
+	int reg_name = reb[reb_head].dest_reg;
 
 	printf("Inside function write\n");
-	rgf[reg_name].reg_val = reb[read_count_reb].reg_val;
+	rgf[reg_name].reg_val = reb[reb_head].reg_val;
 
-	printf("reg name:%d\t reg val:%d\n", reg_name, reb[read_count_reb].reg_val);
-	read_count_reb++;
+	printf("reg name:%d\t reg val:%d\n", reg_name, reb[reb_head].reg_val);
+	reb_head++;
 }
 
 int
@@ -463,44 +538,40 @@ main () {
                  return 0;
          }
 
-	inm_t inm[num_of_inst];
-	inb_t inb[num_of_inst];
-	aib_t aib[num_of_inst];
-	lib_t lib[num_of_inst];
-	adb_t adb[num_of_inst];
-	reb_t reb[num_of_inst];
-	rgf_t rgf[MAX_REGISTERS];
-	dam_t dam[MAX_DATAMEMORY];
-
-	read_dam (dam);
-	update_dam (dam);
-	read_reg (rgf);
-	update_reg (rgf);
-	read_inst (inm, num_of_inst);
-	performing_inst (inm, dam, rgf, num_of_inst);
+	read_dam ();
+	update_dam ();
+	read_reg ();
+	update_reg ();
+	read_inst (num_of_inst);
+	performing_inst (num_of_inst);
 	for (int i = 0; i < num_of_inst; i++) {
-		decode(inm, inb, rgf);
+		decode();
 		printf("inst:%d\t opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", i, inb[i].opcode, inb[i].dest_reg, inb[i].src1, inb[i].src2);
 	}
 	
 	for (int i = 0; i < num_of_inst; i++) {
-		if (inb[read_count_inb].opcode == 1 || inb[read_count_inb].opcode == 2 || inb[read_count_inb].opcode == 3 || inb[read_count_inb].opcode == 4) { 
+		if (inb[inb_head].opcode == 1 || inb[inb_head].opcode == 2 || inb[inb_head].opcode == 3 || inb[inb_head].opcode == 4) { 
 			printf("Instruction=%d\n", i);
-			issue2(inb, aib);
-			alu (aib, reb);
+			issue2();
+			alu ();
 			printf("\n");
-		} else if (inb[read_count_inb].opcode == 5) { 
+		} else if (inb[inb_head].opcode == 5) { 
 			printf("Instruction=%d\n", i);
-			issue1(inb, lib);
-			addr (lib, adb); 
-			load (adb, reb, dam);
+			issue1();
+			addr (); 
+			load ();
 			printf("\n");
 		}
 	}
 
 	for (int i = 0; i < num_of_inst; i++) {
-		write(reb, rgf);
+		write();
 	}
+
+	print_inm (num_of_inst);
+	print_inb (num_of_inst);
+	print_rgf ();
+	print_dam ();
 
 	return 0;
 }
