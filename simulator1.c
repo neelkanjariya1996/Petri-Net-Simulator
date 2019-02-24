@@ -441,6 +441,18 @@ alu (aib_t aib[], reb_t reb[]) {
 	write_count_reb++;
 }
 
+void
+write (reb_t reb[], rgf_t rgf[]) {
+
+	int reg_name = reb[read_count_reb].dest_reg;
+
+	printf("Inside function write\n");
+	rgf[reg_name].reg_val = reb[read_count_reb].reg_val;
+
+	printf("reg name:%d\t reg val:%d\n", reg_name, reb[read_count_reb].reg_val);
+	read_count_reb++;
+}
+
 int
 main () {
 
@@ -485,5 +497,10 @@ main () {
 			printf("\n");
 		}
 	}
+
+	for (int i = 0; i < num_of_inst; i++) {
+		write(reb, rgf);
+	}
+
 	return 0;
 }
