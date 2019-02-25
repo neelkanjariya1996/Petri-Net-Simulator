@@ -1,79 +1,321 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+/*On my honor, I have neither given nor received unauthorized aid on this assignment*/
 
-#define MAX_INSTRUCTIONS 16			//Maximum number of instructions that are allowed
-#define MAX_DATAMEMORY 8			//MAximum number of memory locations allowed
-#define MAX_REGISTERS 8				//Maximum number of registers
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_INSTRUCTIONS 	16 
+#define MAX_REGISTERS 		8
+#define MAX_DATAMEMORY 		8
 
 typedef struct inm_t_ {
-	int opcode[MAX_INSTRUCTIONS];
-	int dest_reg[MAX_REGISTERS];
-	int src1[MAX_REGISTERS];
-	int src2[MAX_REGISTERS];
+	int opcode;
+	int dest_reg;
+	int src1;
+	int src2;
 } inm_t;
 
+typedef struct inm_q_t_ {
+	int head;
+	int tail;
+	int size;
+	inm_t inm[MAX_INSTRUCTIONS];
+} inm_q_t;
+
 typedef struct inb_t_ {
-	int opcode[MAX_INSTRUCTIONS];
-	int dest_reg[MAX_REGISTERS];
-	int src1[MAX_REGISTERS];
-	int src2[MAX_REGISTERS];
+	int opcode;
+	int dest_reg;
+	int src1;
+	int src2;
 } inb_t;
 
+typedef struct inb_q_t_ {
+	int head;
+	int tail;
+	int size;
+	inb_t inb[MAX_INSTRUCTIONS];
+} inb_q_t;
+
 typedef struct lib_t_ {
-	int opcode[MAX_INSTRUCTIONS];
-	int dest_reg[MAX_REGISTERS];
-	int src1[MAX_REGISTERS];
-	int src2[MAX_REGISTERS];
+	int opcode;
+	int dest_reg;
+	int src1;
+	int src2;
 } lib_t;
 
+typedef struct lib_q_t_ {
+	int head;
+	int tail;
+	int size;
+	lib_t lib[MAX_INSTRUCTIONS];
+} lib_q_t;
+
 typedef struct aib_t_ {
-	int opcode[MAX_INSTRUCTIONS];
-	int dest_reg[MAX_REGISTERS];
-	int src1[MAX_REGISTERS];
-	int src2[MAX_REGISTERS];
+	int opcode;
+	int dest_reg;
+	int src1;
+	int src2;
 } aib_t;
 
+typedef struct aib_q_t_ {
+	int head;
+	int tail;
+	int size;
+	aib_t aib[MAX_INSTRUCTIONS];
+} aib_q_t;
+
 typedef struct adb_t_ {
-	int dest_reg[MAX_REGISTERS];
-	int mem_add;
+	int dest_reg;
+	int mem_loc;
 } adb_t;
 
+typedef struct adb_q_t_ {
+	int head;
+	int tail;
+	int size;
+	adb_t adb[MAX_INSTRUCTIONS];
+} adb_q_t;
+
 typedef struct reb_t_ {
-	int dest_reg[MAX_REGISTERS];
-	int val;
+	int dest_reg;
+	int reg_val;
 } reb_t;
 
+typedef struct reb_q_t_ {
+	int head;
+	int tail;
+	int size;
+	reb_t reb[MAX_INSTRUCTIONS];
+} reb_q_t;
+
+typedef struct dam_t_ {
+	int mem_val;
+} dam_t;
+
+typedef struct rgf_t_ {
+	int reg_val;
+} rgf_t;
+
+inm_q_t inm_q;
+inb_q_t inb_q;
+aib_q_t aib_q;
+lib_q_t lib_q;
+adb_q_t adb_q;
+reb_q_t reb_q;
+rgf_t rgf[MAX_REGISTERS];
+dam_t dam[MAX_DATAMEMORY];
+
+
+#define inm_head 	inm_q.head
+#define inm_tail	inm_q.tail
+#define inm_size	inm_q.size
+#define inm 		inm_q.inm
+
+#define inb_head 	inb_q.head
+#define inb_tail	inb_q.tail
+#define inb_size	inb_q.size
+#define inb 		inb_q.inb
+
+#define lib_head 	lib_q.head
+#define lib_tail	lib_q.tail
+#define lib_size	lib_q.size
+#define lib 		lib_q.lib
+
+#define aib_head 	aib_q.head
+#define aib_tail	aib_q.tail
+#define aib_size	aib_q.size
+#define aib 		aib_q.aib
+
+#define adb_head 	adb_q.head
+#define adb_tail	adb_q.tail
+#define adb_size	adb_q.size
+#define adb 		adb_q.adb
+
+#define reb_head 	reb_q.head
+#define reb_tail	reb_q.tail
+#define reb_size	reb_q.size
+#define reb 		reb_q.reb
+
 void
-print_rgf (int R[]) {
-	
+print_inm () {
+
 	int i = 0;
 
-	printf("RGF:");
-	for (i = 0; i < MAX_REGISTERS - 1; i++) {
-		printf("<R%d,%d>,", i, R[i]);
+	printf("INM:");
+	for (i = inm_head; i < (inm_head + inm_size); i++) {
+		
+		if (inm[i].opcode == 1) {
+			printf("<ADD,");
+		} else if (inm[i].opcode == 2) {
+			printf("<SUB,");
+		} else if (inm[i].opcode == 3) {
+			printf("<AND,");
+		} else if (inm[i].opcode == 4) {
+			printf("<OR,");
+		} else if (inm[i].opcode == 5) {
+			printf("<LD,");
+		}
+
+		printf("R%d,", inm[i].dest_reg);
+		printf("R%d,", inm[i].src1);
+		if (i < ((inm_head + inm_size) - 1)) {
+			printf("R%d>,", inm[i].src2);
+		} else {
+			printf("R%d>", inm[i].src2);
+		}
 	}
-	printf("<R7,%d>", R[7]);
+
 	printf("\n");
 
 }
 
 void
-print_dam (int M[]) {
-	
-	int i = 0;
+print_inb () {
 
-	printf("DAM:");
-	for (i = 0; i < MAX_DATAMEMORY - 1; i++) {
-		printf("<%d,%d>,", i, M[i]);
+	printf("INB:");
+	for (int i = inb_head; i < (inb_head + inb_size); i++) {
+		
+		if (inb[i].opcode == 1) {
+			printf("<ADD,");
+		} else if (inb[i].opcode == 2) {
+			printf("<SUB,");
+		} else if (inb[i].opcode == 3) {
+			printf("<AND,");
+		} else if (inb[i].opcode == 4) {
+			printf("<OR,");
+		} else if (inb[i].opcode == 5) {
+			printf("<LD,");
+		}
+
+		printf("R%d,", inb[i].dest_reg);
+		printf("%d,", inb[i].src1);
+		if (i < ((inb_head + inb_size) - 1)) {
+			printf("%d>,", inb[i].src2);
+		} else {
+			printf("%d>", inb[i].src2);
+		}
 	}
-	printf("<7,%d>", M[i]);
+
 	printf("\n");
 
 }
 
-int
-read_dam(int M[]) {
+void
+print_aib() {
+
+	printf("AIB:");
+	for (int i = aib_head; i < (aib_head + aib_size); i++) {
+
+		if (aib[i].opcode == 1) {
+			printf("<ADD,");
+		} else if (aib[i].opcode == 2) {
+			printf("<SUB,");
+		} else if (aib[i].opcode == 3) {
+			printf("<AND,");
+		} else if (aib[i].opcode == 4) {
+			printf("<OR,");
+		} else if (aib[i].opcode == 5) {
+			printf("<LD,");
+		}
+
+		printf("R%d,", aib[i].dest_reg);
+		printf("%d,", aib[i].src1);
+		if (i < ((aib_head + aib_size) - 1)) {
+			printf("%d>,", aib[i].src2);
+		} else {
+			printf("%d>", aib[i].src2);
+		}
+	}
+
+	printf("\n");
+		
+}
+
+void
+print_lib () {
+	
+	printf("LIB:");
+	for (int i = lib_head; i < (lib_head + lib_size); i++) {
+
+		if(lib[i].opcode == 5) {
+			printf("<LD,");
+			printf("R%d,", lib[i].dest_reg);
+			printf("%d,", lib[i].src1);
+			if (i < ((lib_head + lib_size) - 1)) {
+				printf("%d>,", lib[i].src2);
+			} else {
+				printf("%d>", lib[i].src2);
+			}
+		} else
+			continue;
+	}
+
+	printf("\n");
+
+}
+
+void
+print_adb () {
+	
+	printf("ADB:");
+	for (int i = adb_head; i < (adb_head + adb_size); i++) {
+		printf("<R%d,", adb[i].dest_reg);
+		printf("%d>", adb[i].mem_loc);
+	}
+
+	printf("\n");
+
+}
+
+void
+print_reb () {
+
+	printf("REB:");
+	for (int i = reb_head; i < (reb_head + reb_size); i++) {
+		printf("<R%d,", reb[i].dest_reg);
+		if (i < (reb_head + reb_size - 1)) {
+			printf("%d>,", reb[i].reg_val);
+		} else {
+			printf("%d>", reb[i].reg_val);
+		}
+	}
+
+	printf("\n");
+
+}
+
+void
+print_rgf () {
+
+        int i = 0;
+
+        printf("RGF:");
+        for (i = 0; i < MAX_REGISTERS - 1; i++) {
+                printf("<R%d,%d>,", i, rgf[i].reg_val);
+        }
+        printf("<R7,%d>", rgf[7].reg_val);
+        
+	printf("\n");
+
+}
+
+void
+print_dam () {
+
+        int i = 0;
+
+        printf("DAM:");
+        for (i = 0; i < MAX_DATAMEMORY - 1; i++) {
+                printf("<%d,%d>,", i, dam[i].mem_val);
+        }
+        printf("<7,%d>", dam[i].mem_val);
+        
+	printf("\n");
+
+}
+
+void
+read_dam() {
 
         FILE *read_dam;
         char str[6];
@@ -86,7 +328,7 @@ read_dam(int M[]) {
         read_dam = fopen("datamemory.txt", "r");
         if (read_dam == NULL) {
                 fprintf(stderr, "Error reading file\n");
-                return 1;
+                return;
         }
 
         while (ret = fscanf(read_dam, "%s", str)) {
@@ -94,28 +336,25 @@ read_dam(int M[]) {
                 if (ret == EOF) {
                         break;
                 }
-                
-		pch = strtok(str, "<,>\n");
+
+                pch = strtok(str, "<,>\n");
                 mem_ind = atoi(pch);
                 for (i = 0; i < MAX_DATAMEMORY; i++) {
                         if (mem_ind == i) {
                                 if (pch != NULL) {
                                         pch = strtok (NULL, "<,>\n");
                                         mem_val = atoi(pch);
-                                        M[i] = mem_val;
+                                        dam[i].mem_val = mem_val;
                                 }
                         }
                 }
-
         }
-
-        fclose(read_dam);
-
-        return 0;
+        
+	fclose(read_dam);
 }
 
-int
-update_dam(int M[]) {
+void
+update_dam() {
 
         FILE *read_dam;
         int i = 0;
@@ -123,22 +362,21 @@ update_dam(int M[]) {
         read_dam = fopen("datamemory.txt", "w");
         if (read_dam == NULL) {
                 fprintf(stderr, "Error reading file\n");
-                return 1;
+                return; 
         }
 
         for (i = 0; i < MAX_DATAMEMORY; i++) {
-                fprintf(read_dam, "<%d,%d>\n", i, M[i]);
+                fprintf(read_dam, "<%d,%d>\n", i, dam[i].mem_val);
         }
-	
+
         fclose(read_dam);
 
-        return 0;
 }
 
-int 
-read_reg(int R[]) {
+void
+read_reg() {
 
-	FILE *read_reg;
+        FILE *read_reg;
         char str[8];
         char *pch;
         int reg_ind = 0;
@@ -149,7 +387,7 @@ read_reg(int R[]) {
         read_reg = fopen("registers.txt", "r");
         if (read_reg == NULL) {
                 fprintf(stderr, "Error reading file\n");
-                return 1;
+                return;
         }
 
         while (ret = fscanf(read_reg, "%s", str)) {
@@ -165,7 +403,7 @@ read_reg(int R[]) {
                                 if (pch != NULL) {
                                         pch = strtok (NULL, "<R,>\n");
                                         reg_val = atoi(pch);
-                                        R[i] = reg_val;
+                                        rgf[i].reg_val = reg_val;
                                 }
                         }
                 }
@@ -173,37 +411,37 @@ read_reg(int R[]) {
         }
 
         fclose(read_reg);
-
-	return 0;
+	
 }
 
 int
-update_reg(int R[]) {
+update_reg() {
 
-	FILE *read_reg;
-	int i = 0;
-	
-	read_reg = fopen("registers.txt", "w");
+        FILE *read_reg;
+        int i = 0;
+
+        read_reg = fopen("registers.txt", "w");
         if (read_reg == NULL) {
                 fprintf(stderr, "Error reading file\n");
                 return 1;
         }
 
         for (i = 0; i < MAX_REGISTERS; i++) {
-                fprintf(read_reg, "<R%d,%d>\n", i, R[i]);
+                fprintf(read_reg, "<R%d,%d>\n", i, rgf[i].reg_val);
         }
 
         fclose(read_reg);
 
-	return 0;
+        return 0;
+
 }
 
 int
 inst_count() {
 
-	FILE *read_inst;
-	char c;
-	int num_of_inst = 0;
+        FILE *read_inst;
+        char c;
+        int num_of_inst = 0;
 
         read_inst = fopen("instructions.txt", "r");
         if (read_inst == NULL) {
@@ -211,167 +449,315 @@ inst_count() {
                 return 1;
         }
 
-	for (c = getc(read_inst); c != EOF; c = getc(read_inst)) {
-		if (c == '\n') {
-			num_of_inst = num_of_inst + 1;
-		}
-	}
-	printf("The number of instructions = %d\n", num_of_inst);
+        for (c = getc(read_inst); c != EOF; c = getc(read_inst)) {
+                if (c == '\n') {
+                        num_of_inst = num_of_inst + 1;
+                }
+        }
 
-	fclose(read_inst);
-	
-	return num_of_inst;
+        fclose(read_inst);
+
+        return num_of_inst;
+
 }
 
-int
-read_inst(int opcode[], int dest_reg[], int src1[], int src2[], int num_of_inst) {
+void
+read_inst(int num_of_inst) {
 
-	FILE *read_inst;
+        FILE *read_inst;
         char str[15];
         char *pch;
         int ret;
         int i = 0;
-	int destination_register = 0;
-	int first_source = 0;
-	int second_source = 0;
+        int destination_register = 0;
+        int first_source = 0;
+        int second_source = 0;
 
-	read_inst = fopen("instructions.txt", "r");
+        read_inst = fopen("instructions.txt", "r");
         if (read_inst == NULL) {
                 fprintf(stderr, "Error reading file\n");
-                return 1;
+                return;
         }
 
-	i = 0;
-	if (num_of_inst <= MAX_INSTRUCTIONS) {
-		while (ret = fscanf(read_inst, "%s", str)) {
+        i = 0;
+        if (num_of_inst <= MAX_INSTRUCTIONS) {
+                while (ret = fscanf(read_inst, "%s", str)) {
 
-                	if (ret == EOF) {
-                        	break;
-                	}	
-		
-			pch = strtok(str,"<,>\n");
-			while (pch != NULL) {
-				if (!(strcmp(pch, "ADD"))) {
-					opcode[i] = 1;
-				} else if (!(strcmp(pch, "SUB"))) {
-					opcode[i] = 2;
-				} else if (!(strcmp(pch, "AND"))) {
-					opcode[i] = 3;
-				} else if (!(strcmp(pch, "OR"))) { 
-					opcode[i] = 4;
-				} else if (!(strcmp(pch, "LD"))) { 
-					opcode[i] = 5;
-				}
-			
-				pch = strtok (NULL, "<R,>\n");
-				if (pch != NULL) {
-					destination_register = atoi(pch);
-					dest_reg[i] = destination_register;
-				}
+                        if (ret == EOF) {
+                                break;
+                        }
 
-				pch = strtok (NULL, "<R,>\n");
-				if (pch != NULL) {
-					first_source = atoi(pch);
-					src1[i] = first_source;
-				}
+                        pch = strtok(str,"<,>\n");
+                        while (pch != NULL) {
+                                if (!(strcmp(pch, "ADD"))) {
+                                        inm[i].opcode = 1;
+                                } else if (!(strcmp(pch, "SUB"))) {
+                                        inm[i].opcode = 2;
+                                } else if (!(strcmp(pch, "AND"))) {
+                                        inm[i].opcode = 3;
+                                } else if (!(strcmp(pch, "OR"))) {
+                                        inm[i].opcode = 4;
+                                } else if (!(strcmp(pch, "LD"))) {
+                                        inm[i].opcode = 5;
+                                }
 
-				pch = strtok (NULL, "<R,>\n");
-				if(pch != NULL) {
-					second_source = atoi(pch);
-					src2[i] = second_source;
-				}
-			}
-			i++;
-		}
+                                pch = strtok (NULL, "<R,>\n");
+                                if (pch != NULL) {
+                                        destination_register = atoi(pch);
+                                        inm[i].dest_reg = destination_register;
+                                }
+
+                                pch = strtok (NULL, "<R,>\n");
+                                if (pch != NULL) {
+                                        first_source = atoi(pch);
+                                        inm[i].src1 = first_source;
+                                }
+
+                                pch = strtok (NULL, "<R,>\n");
+                                if(pch != NULL) {
+                                        second_source = atoi(pch);
+                                        inm[i].src2 = second_source;
+                                }
+                        }
+                        i++;
+                }
         }
-        
-	fclose(read_inst);
 
-        return 0;
+        fclose(read_inst);
+
 }
 
 void
-performing_inst (int R[], int M[], int opcode[], int dest_reg[], int src1[], int src2[], int num_of_inst) {
-
-	int d = 0;
+decode () {
+	
 	int s1 = 0;
 	int s2 = 0;
-	int i = 0;
-	int ld = 0;
+	
+	s1 = inm[inm_head].src1;
+	s2 = inm[inm_head].src2;
+	
+	inb[inb_tail].opcode = inm[inm_head].opcode;
+	inb[inb_tail].dest_reg = inm[inm_head].dest_reg;
+	inb[inb_tail].src1 = rgf[s1].reg_val;
+	inb[inb_tail].src2 = rgf[s2].reg_val;
+	
+	inm_head++;
+	inb_tail++;
+	inm_size--;
+	inb_size++;
 
-	for (i = 0; i < num_of_inst; i++) {
-		
-		d = dest_reg[i];
-		s1 = src1[i];
-		s2 = src2[i];
-		
-		printf("INSTRUCTION: %d\n", i);
-		if (opcode[i] == 1) {
-			R[d] = R[s1] + R[s2];
-			update_reg(R);
-			print_rgf(R);
-		} else if (opcode[i] == 2) {
-			R[d] = R[s1] - R[s2];
-			update_reg(R);
-			print_rgf(R);
-		} else if (opcode[i] == 3) {
-			R[d] = R[s1] && R[s2];
-			update_reg(R);
-			print_rgf(R);
-		} else if (opcode[i] == 4) {
-			R[d] = R[s1] || R[s2];
-			update_reg(R);
-			print_rgf(R);
-		} else if (opcode[i] == 5) {
-			ld = R[s1] + R[s2];
-			R[d] = M[ld];
-			update_reg(R);
-			print_rgf(R);
-		}
+}
 
+void
+issue2 () {
+	
+	if (inb[inb_head].opcode == 5) { 
+		lib[lib_tail].opcode = inb[inb_head].opcode;
+		lib[lib_tail].dest_reg = inb[inb_head].dest_reg;
+		lib[lib_tail].src1 = inb[inb_head].src1;
+		lib[lib_tail].src2 = inb[inb_head].src2;
+	} 
+	
+	inb_head++;
+	lib_tail++;
+	inb_size--;
+	lib_size++;
+
+}
+
+void
+issue1 () {
+
+	if (inb[inb_head].opcode == 1 || inb[inb_head].opcode == 2 || inb[inb_head].opcode == 3 || inb[inb_head].opcode == 4) { 
+		aib[aib_tail].opcode = inb[inb_head].opcode;
+		aib[aib_tail].dest_reg = inb[inb_head].dest_reg;
+		aib[aib_tail].src1 = inb[inb_head].src1;
+		aib[aib_tail].src2 = inb[inb_head].src2;
+	}
+	
+	inb_head++;
+	aib_tail++;
+	inb_size--;
+	aib_size++;
+
+}
+
+void
+addr () {
+	
+	int mem_loc = 0;
+		
+	mem_loc = lib[lib_head].src1 + lib[lib_head].src2;
+
+	if (lib[lib_head].opcode == 5) { 
+		adb[adb_tail].dest_reg = lib[lib_head].dest_reg;
+		adb[adb_tail].mem_loc = mem_loc;
 	}
 
-	printf("\n");
+	lib_head++;
+	adb_tail++;
+	lib_size--;
+	adb_size++;
+
+}
+
+void
+load () {
+	
+	int mem_loc = 0;
+		
+	mem_loc = adb[adb_head].mem_loc;
+
+	reb[reb_tail].dest_reg = adb[adb_head].dest_reg;
+	reb[reb_tail].reg_val = dam[mem_loc].mem_val;
+
+	adb_head++;
+	reb_tail++;
+	adb_size--;
+	reb_size++;
+
+}
+
+void
+alu () {
+
+	int reg_val = 0;
+
+	if (aib[aib_head].opcode == 1)
+		reg_val = aib[aib_head].src1 + aib[aib_head].src2;
+	else if (aib[aib_head].opcode == 2)
+		reg_val = aib[aib_head].src1 - aib[aib_head].src2;
+	else if (aib[aib_head].opcode == 3)
+		reg_val = aib[aib_head].src1 & aib[aib_head].src2;
+	else if (aib[aib_head].opcode == 4)
+		reg_val = aib[aib_head].src1 | aib[aib_head].src2;
+
+	reb[reb_tail].dest_reg = aib[aib_head].dest_reg;
+	reb[reb_tail].reg_val = reg_val;
+	
+	aib_head++;
+	reb_tail++;
+	aib_size--;
+	reb_size++;
+
+}
+
+void
+write () {
+
+	int reg_name = 0;
+		
+	reg_name = reb[reb_head].dest_reg;
+
+	rgf[reg_name].reg_val = reb[reb_head].reg_val;
+
+	reb_head++;
+	reb_size--;
 
 }
 
 int
 main () {
 
-	 int R[MAX_REGISTERS] = {0};
-	 int M[MAX_DATAMEMORY] = {0};
-	 int opcode[MAX_INSTRUCTIONS] = {0};
-	 int dest_reg[MAX_INSTRUCTIONS] = {0};
-	 int src1[MAX_INSTRUCTIONS] = {0};
-	 int src2[MAX_INSTRUCTIONS] = {0};
-	 int num_of_inst = 0;
-	 int active_token[6] = {0};	//[0] = inm, [1] = inb, [2] = aib, [3] = lib, [4] = adb, [5] = reb
-	 
-	 num_of_inst = inst_count();
-	 if(num_of_inst > MAX_INSTRUCTIONS) {
-		 printf("MAXIMUM NUMBER OF INSTRUCTIONS ALLOWED IS 16\n");
-		 return 0;
-	 }
+	int num_of_inst = 0;
+	int step = 0; 
+	int curr_inm_size = 0;
+	int curr_inb_size = 0;
+	int curr_aib_size = 0;
+	int curr_lib_size = 0;
+	int curr_adb_size = 0;
+	int curr_reb_size = 0;
 
-	 active_token[0] = num_of_inst;
-	 for (int i = 0; i < 6; i++) {
-	 	printf("active_token[%d] = %d\n", i, active_token[i]);
-	}
+	memset(&inm_q, 0, sizeof(inm_q));
+	memset(&inb_q, 0, sizeof(inb_q));
+	memset(&aib_q, 0, sizeof(aib_q));
+	memset(&lib_q, 0, sizeof(lib_q));
+	memset(&adb_q, 0, sizeof(adb_q));
+	memset(&reb_q, 0, sizeof(reb_q));
+	memset(&rgf, 0, sizeof(rgf));
+	memset(&dam, 0, sizeof(dam));
+	
+	num_of_inst = inst_count();
+	if(num_of_inst > MAX_INSTRUCTIONS) {
+                 printf("MAXIMUM NUMBER OF INSTRUCTIONS ALLOWED IS 16\n");
+                 return 0;
+         }
 
+	read_dam ();
+	update_dam ();
+	read_reg ();
+	update_reg ();
+	read_inst (num_of_inst);
+	
+	inm_size = num_of_inst;
+	
+	while (inm_size != 0 || inb_size != 0 || lib_size != 0 || adb_size != 0 || aib_size != 0 || reb_size != 0) {
 
-	 read_reg(R);
-	 update_reg(R);
-         read_dam(M);
-         update_dam(M);
-	 read_inst(opcode, dest_reg, src1, src2, num_of_inst);
-	 performing_inst(R, M, opcode, dest_reg, src1, src2, num_of_inst);
-	 print_rgf(R);
-	 print_dam(M);
+		curr_inm_size = inm_size;
+		curr_inb_size = inb_size;
+		curr_aib_size = aib_size;
+		curr_lib_size = lib_size;
+		curr_adb_size = adb_size;
+		curr_reb_size = reb_size;
 
-	 while (active_token[0] != 0 || active_token[1] != 0 || active_token[2] != 0 || active_token[3] != 0 || active_token[4] != 0 || active_token[5] != 0) {
 		
-	 
-	 }
+		printf("STEP %d\n", step);
+		
+		print_inm();
+		print_inb();
+		print_aib();
+		print_lib();
+		print_adb();
+		print_reb();
+		print_rgf();
+		print_dam();
 
-         return 0;
+
+		if (curr_inm_size != 0) {
+			decode();
+		}
+
+		if (curr_inb_size != 0) {
+			if (inb[inb_head].opcode == 5) {
+				issue2();
+			}
+			else {
+				issue1();
+			}
+		}
+
+		if (curr_lib_size != 0) {
+			addr();
+		}
+
+		if (curr_adb_size != 0) {
+			load();
+		}
+
+		if (curr_aib_size != 0) {
+			alu();
+		}
+
+		if (curr_reb_size != 0) {
+			write();
+		} 
+		
+		step++;
+
+		printf("\n");
+	
+	}
+	
+	printf("STEP %d:\n",step);
+	print_inm();
+	print_inb();
+	print_aib();
+	print_lib();
+	print_adb();
+	print_reb();
+	print_rgf();
+	print_dam();
+	printf("\n");
+		
+	return 0;
 }
