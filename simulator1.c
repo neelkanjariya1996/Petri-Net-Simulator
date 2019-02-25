@@ -1,7 +1,8 @@
+/*On my honor, I have neither given nor received unauthorized aid on this assignment*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 #define MAX_INSTRUCTIONS 	16 
 #define MAX_REGISTERS 		8
@@ -103,16 +104,8 @@ adb_q_t adb_q;
 reb_q_t reb_q;
 rgf_t rgf[MAX_REGISTERS];
 dam_t dam[MAX_DATAMEMORY];
-/*
-memset(inm_q,0,sizeof(inm_q));
-memset(inb_q,0,sizeof(inb_q));
-memset(aib_q,0,sizeof(aib_q));
-memset(lib_q,0,sizeof(lib_q));
-memset(adb_q,0,sizeof(adb_q));
-memset(reb_q,0,sizeof(reb_q));
-memset(rgf,0,sizeof(rgf));
-memset(dam,0,sizeof(dam));
-*/
+
+
 #define inm_head 	inm_q.head
 #define inm_tail	inm_q.tail
 #define inm_size	inm_q.size
@@ -280,7 +273,7 @@ print_reb () {
 	printf("REB:");
 	for (int i = reb_head; i < (reb_head + reb_size); i++) {
 		printf("<R%d,", reb[i].dest_reg);
-		if (i < ((reb_size + reb_size) - 1)) {
+		if (i < (reb_head + reb_size - 1)) {
 			printf("%d>,", reb[i].reg_val);
 		} else {
 			printf("%d>", reb[i].reg_val);
@@ -288,6 +281,7 @@ print_reb () {
 	}
 
 	printf("\n");
+
 }
 
 void
@@ -377,7 +371,6 @@ update_dam() {
 
         fclose(read_dam);
 
-        //return 0;
 }
 
 void
@@ -418,6 +411,7 @@ read_reg() {
         }
 
         fclose(read_reg);
+	
 }
 
 int
@@ -439,6 +433,7 @@ update_reg() {
         fclose(read_reg);
 
         return 0;
+
 }
 
 int
@@ -459,11 +454,11 @@ inst_count() {
                         num_of_inst = num_of_inst + 1;
                 }
         }
-        printf("The number of instructions = %d\n", num_of_inst);
 
         fclose(read_inst);
 
         return num_of_inst;
+
 }
 
 void
@@ -511,6 +506,7 @@ read_inst(int num_of_inst) {
                                         destination_register = atoi(pch);
                                         inm[i].dest_reg = destination_register;
                                 }
+
                                 pch = strtok (NULL, "<R,>\n");
                                 if (pch != NULL) {
                                         first_source = atoi(pch);
@@ -528,51 +524,6 @@ read_inst(int num_of_inst) {
         }
 
         fclose(read_inst);
-
-}
-
-void
-performing_inst (int num_of_inst) {
-
-        int d = 0;
-        int s1 = 0;
-        int s2 = 0;
-        int i = 0;
-        int ld = 0;
-
-        for (i = 0; i < num_of_inst; i++) {
-
-                d = inm[i].dest_reg;
-                s1 = inm[i].src1;
-                s2 = inm[i].src2;
-
-                //printf("INSTRUCTION: %d\n", i);
-                if (inm[i].opcode == 1) {
-                        rgf[d].reg_val = rgf[s1].reg_val + rgf[s2].reg_val;
-                        update_reg(rgf);
-                        //print_rgf(rgf);
-                } else if (inm[i].opcode == 2) {
-                        rgf[d].reg_val = rgf[s1].reg_val - rgf[s2].reg_val;
-                        update_reg(rgf);
-                        //print_rgf(rgf);
-                } else if (inm[i].opcode == 3) {
-                        rgf[d].reg_val = rgf[s1].reg_val && rgf[s2].reg_val;
-                        update_reg(rgf);
-                        //print_rgf(rgf);
-                } else if (inm[i].opcode == 4) {
-                        rgf[d].reg_val = rgf[s1].reg_val || rgf[s2].reg_val;
-                        update_reg(rgf);
-                        //print_rgf(rgf);
-                } else if (inm[i].opcode == 5) {
-                        ld = rgf[s1].reg_val + rgf[s2].reg_val;
-                        rgf[d].reg_val = dam[ld].mem_val;
-                        update_reg(rgf);
-                        //print_rgf(rgf);
-                }
-
-        }
-
-        printf("\n");
 
 }
 
@@ -600,7 +551,6 @@ decode () {
 void
 issue2 () {
 	
-	//printf("inside function issue 1\n");
 	if (inb[inb_head].opcode == 5) { 
 		lib[lib_tail].opcode = inb[inb_head].opcode;
 		lib[lib_tail].dest_reg = inb[inb_head].dest_reg;
@@ -608,7 +558,6 @@ issue2 () {
 		lib[lib_tail].src2 = inb[inb_head].src2;
 	} 
 	
-	//printf("opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", lib[lib_tail].opcode, lib[lib_tail].dest_reg, lib[lib_tail].src1, lib[lib_tail].src2);
 	inb_head++;
 	lib_tail++;
 	inb_size--;
@@ -619,7 +568,6 @@ issue2 () {
 void
 issue1 () {
 
-	//printf("inside function issue 2\n");
 	if (inb[inb_head].opcode == 1 || inb[inb_head].opcode == 2 || inb[inb_head].opcode == 3 || inb[inb_head].opcode == 4) { 
 		aib[aib_tail].opcode = inb[inb_head].opcode;
 		aib[aib_tail].dest_reg = inb[inb_head].dest_reg;
@@ -627,7 +575,6 @@ issue1 () {
 		aib[aib_tail].src2 = inb[inb_head].src2;
 	}
 	
-	//printf("opcode:%d\t dest_reg:%d\t src1:%d\t src2:%d\t\n", aib[aib_tail].opcode, aib[aib_tail].dest_reg, aib[aib_tail].src1, aib[aib_tail].src2);	
 	inb_head++;
 	aib_tail++;
 	inb_size--;
@@ -638,14 +585,15 @@ issue1 () {
 void
 addr () {
 	
-	int mem_loc = lib[lib_head].src1 + lib[lib_head].src2;
-	//printf("inside funtion addr\n");
+	int mem_loc = 0;
+		
+	mem_loc = lib[lib_head].src1 + lib[lib_head].src2;
+
 	if (lib[lib_head].opcode == 5) { 
 		adb[adb_tail].dest_reg = lib[lib_head].dest_reg;
 		adb[adb_tail].mem_loc = mem_loc;
 	}
 
-	//printf("dest_reg:%d\t mem_loc:%d\t\n", adb[adb_tail].dest_reg, adb[adb_tail].mem_loc);
 	lib_head++;
 	adb_tail++;
 	lib_size--;
@@ -656,13 +604,13 @@ addr () {
 void
 load () {
 	
-	int mem_loc = adb[adb_head].mem_loc;
+	int mem_loc = 0;
+		
+	mem_loc = adb[adb_head].mem_loc;
 
-	//printf("inside function load\n");
 	reb[reb_tail].dest_reg = adb[adb_head].dest_reg;
 	reb[reb_tail].reg_val = dam[mem_loc].mem_val;
 
-	//printf("dest_reg:%d\t reg_val:%d\t\n", reb[reb_tail].dest_reg, reb[reb_tail].reg_val);
 	adb_head++;
 	reb_tail++;
 	adb_size--;
@@ -684,11 +632,9 @@ alu () {
 	else if (aib[aib_head].opcode == 4)
 		reg_val = aib[aib_head].src1 | aib[aib_head].src2;
 
-	//printf("inside function alu\n");
 	reb[reb_tail].dest_reg = aib[aib_head].dest_reg;
 	reb[reb_tail].reg_val = reg_val;
 	
-	//printf("dest_reg:%d\t reg_val:%d\t\n", reb[reb_tail].dest_reg, reb[reb_tail].reg_val);
 	aib_head++;
 	reb_tail++;
 	aib_size--;
@@ -699,68 +645,14 @@ alu () {
 void
 write () {
 
-	int reg_name = reb[reb_head].dest_reg;
+	int reg_name = 0;
+		
+	reg_name = reb[reb_head].dest_reg;
 
-	//printf("Inside function write\n");
 	rgf[reg_name].reg_val = reb[reb_head].reg_val;
 
-	//printf("reg name:%d\t reg val:%d\n", reg_name, reb[reb_head].reg_val);
 	reb_head++;
 	reb_size--;
-
-}
-
-bool
-is_inm_empty (int num_of_inst) {
-	
-	if (inm_head > num_of_inst)
-		return true;
-	return false;
-
-}
-
-bool
-is_inb_empty () {
-
-	if (inb_head >= inb_tail)
-		return true;
-	return false;
-
-}
-
-bool
-is_lib_empty () {
-
-	if (lib_head >= lib_tail)
-		return true;
-	return false;
-
-}
-
-bool
-is_adb_empty () {
-
-	if (adb_head >= adb_tail)
-		return true;
-	return false;
-
-}
-
-bool
-is_aib_empty () {
-
-	if (aib_head >= aib_tail)
-		return true;
-	return false;
-
-}
-
-bool
-is_reb_empty () {
-
-	if (reb_head >= reb_tail)
-		return true;
-	return false;
 
 }
 
@@ -776,6 +668,15 @@ main () {
 	int curr_adb_size = 0;
 	int curr_reb_size = 0;
 
+	memset(&inm_q, 0, sizeof(inm_q));
+	memset(&inb_q, 0, sizeof(inb_q));
+	memset(&aib_q, 0, sizeof(aib_q));
+	memset(&lib_q, 0, sizeof(lib_q));
+	memset(&adb_q, 0, sizeof(adb_q));
+	memset(&reb_q, 0, sizeof(reb_q));
+	memset(&rgf, 0, sizeof(rgf));
+	memset(&dam, 0, sizeof(dam));
+	
 	num_of_inst = inst_count();
 	if(num_of_inst > MAX_INSTRUCTIONS) {
                  printf("MAXIMUM NUMBER OF INSTRUCTIONS ALLOWED IS 16\n");
@@ -789,9 +690,6 @@ main () {
 	read_inst (num_of_inst);
 	
 	inm_size = num_of_inst;
-	//print_inm();	
-
-	//printf("Outside: inm_size=%d, inb = %d, lib = %d, adb = %d, aib = %d, reb = %d\n", inm_size, inb_size, lib_size, adb_size, aib_size, reb_size);
 	
 	while (inm_size != 0 || inb_size != 0 || lib_size != 0 || adb_size != 0 || aib_size != 0 || reb_size != 0) {
 
@@ -804,14 +702,6 @@ main () {
 
 		
 		printf("STEP %d\n", step);
-		/*
-		printf("inm:%d\n", curr_inm_size);
-		printf("inb:%d\n", curr_inb_size);
-		printf("aib:%d\n", curr_aib_size);
-		printf("lib:%d\n", curr_lib_size);
-		printf("adb:%d\n", curr_adb_size);
-		printf("reb:%d\n", curr_reb_size);
-		*/
 		
 		print_inm();
 		print_inb();
@@ -824,45 +714,33 @@ main () {
 
 
 		if (curr_inm_size != 0) {
-			//print_inm();
 			decode();
 		}
 
 		if (curr_inb_size != 0) {
 			if (inb[inb_head].opcode == 5) {
-				//print_inb();
 				issue2();
 			}
 			else {
-				//print_inb();
 				issue1();
 			}
 		}
 
-		if (curr_aib_size != 0) {
-			//print_aib();
-			alu();
-		}
-
 		if (curr_lib_size != 0) {
-			//print_lib();
 			addr();
 		}
 
 		if (curr_adb_size != 0) {
-			//print_adb();
 			load();
 		}
 
+		if (curr_aib_size != 0) {
+			alu();
+		}
 
 		if (curr_reb_size != 0) {
-			//print_reb();
 			write();
 		} 
-
-		//printf("inside: inm_size=%d, inb = %d, lib = %d, adb = %d, aib = %d, reb = %d\n", inm_size, inb_size, lib_size, adb_size, aib_size, reb_size);
-		//print_rgf();
-		//print_dam();
 		
 		step++;
 
