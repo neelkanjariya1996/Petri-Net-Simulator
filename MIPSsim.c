@@ -105,6 +105,14 @@ reb_q_t reb_q;
 rgf_t rgf[MAX_REGISTERS];
 dam_t dam[MAX_DATAMEMORY];
 
+int mem_ind = 0;
+int mem_val = 0;
+int reg_ind = 0;
+int reg_val = 0;
+int opcode = 0;
+int destination_register = 0;
+int first_source = 0;
+int second_source = 0;
 
 #define inm_head 	inm_q.head
 #define inm_tail	inm_q.tail
@@ -314,23 +322,31 @@ print_dam () {
 
 }
 
-void
+int
 read_dam() {
 
         FILE *read_dam;
         char str[6];
         char *pch;
-        int mem_ind = 0;
-        int mem_val = 0;
         int ret = 0;
         int i = 0;
 
         read_dam = fopen("datamemory.txt", "r");
         if (read_dam == NULL) {
-                fprintf(stderr, "Error reading file\n");
-                return;
-        }
+                fprintf(stderr, "Error reading file \n");
+                return -1;
+        } else {
+		fseek (read_dam, 0, SEEK_END);
+		int size = ftell(read_dam);
+		
+		if (size == 0) {
+			printf("Datamemory file empty\n");
+			return -1;
+		}
+	}
+	fclose(read_dam);
 
+        read_dam = fopen("datamemory.txt", "r");
         while (ret = fscanf(read_dam, "%s", str)) {
 
                 if (ret == EOF) {
@@ -339,11 +355,19 @@ read_dam() {
 
                 pch = strtok(str, "<,>\n");
                 mem_ind = atoi(pch);
+		if (mem_ind < 0 || mem_ind > 7) {
+			printf("Memory location can only be in between 0 to 7\n");
+			return -1;
+		} 
                 for (i = 0; i < MAX_DATAMEMORY; i++) {
                         if (mem_ind == i) {
                                 if (pch != NULL) {
                                         pch = strtok (NULL, "<,>\n");
                                         mem_val = atoi(pch);
+					if (mem_val < 0 || mem_val > 63) {
+						printf("The contents of data memory can be between 0 to 63\n");
+						return -1;
+					}
                                         dam[i].mem_val = mem_val;
                                 }
                         }
@@ -351,9 +375,11 @@ read_dam() {
         }
         
 	fclose(read_dam);
+
+	return 0;
 }
 
-void
+int
 update_dam() {
 
         FILE *read_dam;
@@ -362,34 +388,54 @@ update_dam() {
         read_dam = fopen("datamemory.txt", "w");
         if (read_dam == NULL) {
                 fprintf(stderr, "Error reading file\n");
-                return; 
-        }
+                return -1; 
+        } else {
+		fseek (read_dam, 0, SEEK_END);
+		int size = ftell(read_dam);
+		
+		if (size == 0) {
+			printf("Datamemory file empty\n");
+			return -1;
+		}
+	}
+        fclose(read_dam);
 
+        read_dam = fopen("datamemory.txt", "w");
         for (i = 0; i < MAX_DATAMEMORY; i++) {
                 fprintf(read_dam, "<%d,%d>\n", i, dam[i].mem_val);
         }
 
         fclose(read_dam);
 
+	return 0;
+
 }
 
-void
+int
 read_reg() {
 
         FILE *read_reg;
         char str[8];
         char *pch;
-        int reg_ind = 0;
-        int reg_val = 0;
         int ret = 0;
         int i = 0;
 
         read_reg = fopen("registers.txt", "r");
         if (read_reg == NULL) {
                 fprintf(stderr, "Error reading file\n");
-                return;
-        }
+                return -1;
+        } else {
+		fseek (read_reg, 0, SEEK_END);
+		int size = ftell(read_reg);
+		
+		if (size == 0) {
+			printf("Register file empty\n");
+			return -1;
+		}
+	}
+        fclose(read_reg);
 
+        read_reg = fopen("registers.txt", "r");
         while (ret = fscanf(read_reg, "%s", str)) {
 
                 if (ret == EOF) {
@@ -398,11 +444,19 @@ read_reg() {
 
                 pch = strtok(str, "<R,>\n");
                 reg_ind = atoi(pch);
+		if (reg_ind < 0 || reg_ind > 7) {
+			printf("Register index can only be between 0 to 7\n");
+			return -1;
+		}
                 for (i = 0; i < MAX_REGISTERS; i++) {
                         if (reg_ind == i) {
                                 if (pch != NULL) {
                                         pch = strtok (NULL, "<R,>\n");
                                         reg_val = atoi(pch);
+					if (reg_val < 0 || reg_val > 63) {
+						printf("Register values can only be between 0 to 63\n");
+						return -1;
+					}
                                         rgf[i].reg_val = reg_val;
                                 }
                         }
@@ -411,6 +465,8 @@ read_reg() {
         }
 
         fclose(read_reg);
+
+	return 0;
 	
 }
 
@@ -423,9 +479,19 @@ update_reg() {
         read_reg = fopen("registers.txt", "w");
         if (read_reg == NULL) {
                 fprintf(stderr, "Error reading file\n");
-                return 1;
-        }
+                return -1;
+        } else {
+		fseek (read_reg, 0, SEEK_END);
+		int size = ftell(read_reg);
+		
+		if (size == 0) {
+			printf("Register file empty\n");
+			return -1;
+		}
+	}
+        fclose(read_reg);
 
+        read_reg = fopen("registers.txt", "w");
         for (i = 0; i < MAX_REGISTERS; i++) {
                 fprintf(read_reg, "<R%d,%d>\n", i, rgf[i].reg_val);
         }
@@ -446,9 +512,19 @@ inst_count() {
         read_inst = fopen("instructions.txt", "r");
         if (read_inst == NULL) {
                 fprintf(stderr, "Error reading file\n");
-                return 1;
-        }
+                return -1;
+        } else {
+		fseek (read_inst, 0, SEEK_END);
+		int size = ftell(read_inst);
+		
+		if (size == 0) {
+			printf("Instruction file empty\n");
+			return -1;
+		}
+	}
+        fclose(read_inst);
 
+        read_inst = fopen("instructions.txt", "r");
         for (c = getc(read_inst); c != EOF; c = getc(read_inst)) {
                 if (c == '\n') {
                         num_of_inst = num_of_inst + 1;
@@ -461,7 +537,7 @@ inst_count() {
 
 }
 
-void
+int
 read_inst(int num_of_inst) {
 
         FILE *read_inst;
@@ -469,16 +545,23 @@ read_inst(int num_of_inst) {
         char *pch;
         int ret;
         int i = 0;
-        int destination_register = 0;
-        int first_source = 0;
-        int second_source = 0;
 
         read_inst = fopen("instructions.txt", "r");
         if (read_inst == NULL) {
                 fprintf(stderr, "Error reading file\n");
-                return;
-        }
+                return -1;
+        } else {
+		fseek (read_inst, 0, SEEK_END);
+		int size = ftell(read_inst);
+		
+		if (size == 0) {
+			printf("Instruction file empty\n");
+			return -1;
+		}
+	}
+        fclose(read_inst);
 
+        read_inst = fopen("instructions.txt", "r");
         i = 0;
         if (num_of_inst <= MAX_INSTRUCTIONS) {
                 while (ret = fscanf(read_inst, "%s", str)) {
@@ -486,44 +569,64 @@ read_inst(int num_of_inst) {
                         if (ret == EOF) {
                                 break;
                         }
-
                         pch = strtok(str,"<,>\n");
-                        while (pch != NULL) {
-                                if (!(strcmp(pch, "ADD"))) {
-                                        inm[i].opcode = 1;
-                                } else if (!(strcmp(pch, "SUB"))) {
-                                        inm[i].opcode = 2;
-                                } else if (!(strcmp(pch, "AND"))) {
-                                        inm[i].opcode = 3;
-                                } else if (!(strcmp(pch, "OR"))) {
-                                        inm[i].opcode = 4;
-                                } else if (!(strcmp(pch, "LD"))) {
-                                        inm[i].opcode = 5;
-                                }
-
-                                pch = strtok (NULL, "<R,>\n");
-                                if (pch != NULL) {
-                                        destination_register = atoi(pch);
-                                        inm[i].dest_reg = destination_register;
-                                }
-
-                                pch = strtok (NULL, "<R,>\n");
-                                if (pch != NULL) {
-                                        first_source = atoi(pch);
-                                        inm[i].src1 = first_source;
-                                }
-
-                                pch = strtok (NULL, "<R,>\n");
-                                if(pch != NULL) {
-                                        second_source = atoi(pch);
-                                        inm[i].src2 = second_source;
-                                }
+                                
+			if (!(strncmp(pch, "ADD", 3))) {
+                                inm[i].opcode = 1;
+                        } else if (!(strncmp(pch, "SUB", 3))) {
+                                inm[i].opcode = 2;
+                        } else if (!(strncmp(pch, "AND", 3))) {
+                                inm[i].opcode = 3;
+                        } else if (!(strncmp(pch, "OR", 2))) {
+                                inm[i].opcode = 4;
+                        } else if (!(strncmp(pch, "LD", 2))) {
+                                inm[i].opcode = 5;
+                        }  else {
+			        opcode = 6;
+			 	printf("Allowed instructions are ADD, SUB, AND, OR and LD\n");
+				return -1;
+			}		
+				
+                        pch = strtok (NULL, "<R,>\n");
+			printf("%s\n", pch);
+                        if (pch != NULL) {
+				destination_register = atoi(pch);
+				if (destination_register < 0 || destination_register > 7) {
+				printf("Destination register names should be between R0 to R7\n");
+				return -1;
+				}
+                                inm[i].dest_reg = destination_register;
                         }
+
+                        pch = strtok (NULL, "<R,>\n");
+                        if (pch != NULL) {
+				first_source = atoi(pch);
+				if (first_source < 0 || first_source > 7) {
+					printf("First source operand names should be between R0 to R7\n");
+					return -1;
+				}
+                                inm[i].src1 = first_source;
+                        }
+
+                        pch = strtok (NULL, "<R,>\n");
+                        if(pch != NULL) {
+				second_source = atoi(pch);
+				if (second_source < 0 || second_source > 7) {
+					printf("Second source operand names should be between R0 to R7\n");
+					return -1;
+				}
+                                inm[i].src2 = second_source;
+				} else {
+					printf("Invalid Instruction\n");
+					return -1;
+			}
                         i++;
-                }
+                  }
         }
 
         fclose(read_inst);
+
+	return 0;
 
 }
 
@@ -659,6 +762,7 @@ write () {
 int
 main () {
 
+	FILE *MIPSsim;
 	int num_of_inst = 0;
 	int step = 0; 
 	int curr_inm_size = 0;
@@ -667,6 +771,12 @@ main () {
 	int curr_lib_size = 0;
 	int curr_adb_size = 0;
 	int curr_reb_size = 0;
+	int read_inst_out = 0;
+	int num_of_inst_out = 0;
+	int read_dam_out = 0;
+	int update_dam_out = 0;
+	int read_reg_out = 0;
+	int update_reg_out = 0;
 
 	memset(&inm_q, 0, sizeof(inm_q));
 	memset(&inb_q, 0, sizeof(inb_q));
@@ -676,21 +786,68 @@ main () {
 	memset(&reb_q, 0, sizeof(reb_q));
 	memset(&rgf, 0, sizeof(rgf));
 	memset(&dam, 0, sizeof(dam));
-	
+
 	num_of_inst = inst_count();
+	num_of_inst_out = inst_count();	
+	if (num_of_inst_out == -1) {
+		return 0;
+	}
 	if(num_of_inst > MAX_INSTRUCTIONS) {
                  printf("MAXIMUM NUMBER OF INSTRUCTIONS ALLOWED IS 16\n");
                  return 0;
          }
 
-	read_dam ();
+	read_dam_out = read_dam ();
+	if (read_dam_out == -1) {
+		return 0;
+	}
+	if (mem_ind < 0 || mem_ind > 7) {
+		return 0;
+	}
+	if (mem_val < 0 || mem_val > 63) {
+		return 0;
+	}
+
 	update_dam ();
-	read_reg ();
+	if (update_dam_out == -1) {
+		return 0;
+	}
+
+	read_reg_out = read_reg ();
+	if (read_reg_out == -1) {
+		return 0;
+	}
+	if (reg_ind < 0 || reg_ind > 7) {
+		return 0;
+	}
+	if (reg_val < 0 || reg_val > 63) {
+		return 0;
+	}
+
 	update_reg ();
-	read_inst (num_of_inst);
+	if (update_reg_out == -1) {
+		return 0;
+	}
+
+	read_inst_out = read_inst (num_of_inst);
+	if (read_inst_out == -1) {
+		return 0;
+	}
+	if (opcode == 6) {
+		return 0;
+	}
+	if (destination_register < 0 || destination_register > 7) {
+		return 0;
+	}
+	if (first_source < 0 || first_source > 7) {
+		return 0;
+	}
+	if (second_source < 0 || second_source > 7) {
+		return 0;
+	}
 	
 	inm_size = num_of_inst;
-	
+
 	while (inm_size != 0 || inb_size != 0 || lib_size != 0 || adb_size != 0 || aib_size != 0 || reb_size != 0) {
 
 		curr_inm_size = inm_size;
@@ -699,7 +856,6 @@ main () {
 		curr_lib_size = lib_size;
 		curr_adb_size = adb_size;
 		curr_reb_size = reb_size;
-
 		
 		printf("STEP %d\n", step);
 		
