@@ -114,6 +114,8 @@ int destination_register = 0;
 int first_source = 0;
 int second_source = 0;
 
+FILE *simulation;
+
 #define inm_head 	inm_q.head
 #define inm_tail	inm_q.tail
 #define inm_size	inm_q.size
@@ -337,78 +339,42 @@ read_dam() {
                 return -1;
         } else {
 		fseek (read_dam, 0, SEEK_END);
-		int size = ftell(read_dam);
-		
-		if (size == 0) {
-			printf("Datamemory file empty\n");
-			return -1;
-		}
-	}
-	fclose(read_dam);
+		unsigned long size = (unsigned long)ftell(read_dam);
+		if (size > 0) {
+			rewind(read_dam);
+		 
+			while (ret = fscanf(read_dam, "%s", str)) {
 
-        read_dam = fopen("datamemory.txt", "r");
-        while (ret = fscanf(read_dam, "%s", str)) {
+				if (ret == EOF) {
+					break;
+				}
 
-                if (ret == EOF) {
-                        break;
-                }
-
-                pch = strtok(str, "<,>\n");
-                mem_ind = atoi(pch);
-		if (mem_ind < 0 || mem_ind > 7) {
-			printf("Memory location can only be in between 0 to 7\n");
-			return -1;
-		} 
-                for (i = 0; i < MAX_DATAMEMORY; i++) {
-                        if (mem_ind == i) {
-                                if (pch != NULL) {
-                                        pch = strtok (NULL, "<,>\n");
-                                        mem_val = atoi(pch);
-					if (mem_val < 0 || mem_val > 63) {
-						printf("The contents of data memory can be between 0 to 63\n");
-						return -1;
+				pch = strtok(str, "<,>\n");
+				mem_ind = atoi(pch);
+				if (mem_ind < 0 || mem_ind > 7) {
+					printf("Memory location can only be in between 0 to 7\n");
+					return -1;
+				} 
+				for (i = 0; i < MAX_DATAMEMORY; i++) {
+					if (mem_ind == i) {
+						if (pch != NULL) {
+							pch = strtok (NULL, "<,>\n");
+							mem_val = atoi(pch);
+							if (mem_val < 0 || mem_val > 63) {
+								printf("The contents of data memory can be between 0 to 63\n");
+								return -1;
+							}
+							dam[i].mem_val = mem_val;
+						}
 					}
-                                        dam[i].mem_val = mem_val;
-                                }
-                        }
-                }
-        }
-        
+				}
+			}
+		}
+	}
+
 	fclose(read_dam);
 
 	return 0;
-}
-
-int
-update_dam() {
-
-        FILE *read_dam;
-        int i = 0;
-
-        read_dam = fopen("datamemory.txt", "w");
-        if (read_dam == NULL) {
-                fprintf(stderr, "Error reading file\n");
-                return -1; 
-        } else {
-		fseek (read_dam, 0, SEEK_END);
-		int size = ftell(read_dam);
-		
-		if (size == 0) {
-			printf("Datamemory file empty\n");
-			return -1;
-		}
-	}
-        fclose(read_dam);
-
-        read_dam = fopen("datamemory.txt", "w");
-        for (i = 0; i < MAX_DATAMEMORY; i++) {
-                fprintf(read_dam, "<%d,%d>\n", i, dam[i].mem_val);
-        }
-
-        fclose(read_dam);
-
-	return 0;
-
 }
 
 int
@@ -426,80 +392,45 @@ read_reg() {
                 return -1;
         } else {
 		fseek (read_reg, 0, SEEK_END);
-		int size = ftell(read_reg);
+		unsigned long size = (unsigned long)ftell(read_reg);
 		
-		if (size == 0) {
-			printf("Register file empty\n");
-			return -1;
+		if (size > 0) {
+			rewind(read_reg);
+
+			while (ret = fscanf(read_reg, "%s", str)) {
+
+				if (ret == EOF) {
+					break;
+				}
+
+				pch = strtok(str, "<R,>\n");
+				reg_ind = atoi(pch);
+				if (reg_ind < 0 || reg_ind > 7) {
+					printf("Register index can only be between 0 to 7\n");
+					return -1;
+				}
+				for (i = 0; i < MAX_REGISTERS; i++) {
+					if (reg_ind == i) {
+						if (pch != NULL) {
+							pch = strtok (NULL, "<R,>\n");
+							reg_val = atoi(pch);
+							if (reg_val < 0 || reg_val > 63) {
+								printf("Register values can only be between 0 to 63\n");
+								return -1;
+							}
+							rgf[i].reg_val = reg_val;
+						}
+					}
+				}
+
+			}
 		}
 	}
-        fclose(read_reg);
-
-        read_reg = fopen("registers.txt", "r");
-        while (ret = fscanf(read_reg, "%s", str)) {
-
-                if (ret == EOF) {
-                        break;
-                }
-
-                pch = strtok(str, "<R,>\n");
-                reg_ind = atoi(pch);
-		if (reg_ind < 0 || reg_ind > 7) {
-			printf("Register index can only be between 0 to 7\n");
-			return -1;
-		}
-                for (i = 0; i < MAX_REGISTERS; i++) {
-                        if (reg_ind == i) {
-                                if (pch != NULL) {
-                                        pch = strtok (NULL, "<R,>\n");
-                                        reg_val = atoi(pch);
-					if (reg_val < 0 || reg_val > 63) {
-						printf("Register values can only be between 0 to 63\n");
-						return -1;
-					}
-                                        rgf[i].reg_val = reg_val;
-                                }
-                        }
-                }
-
-        }
 
         fclose(read_reg);
 
 	return 0;
 	
-}
-
-int
-update_reg() {
-
-        FILE *read_reg;
-        int i = 0;
-
-        read_reg = fopen("registers.txt", "w");
-        if (read_reg == NULL) {
-                fprintf(stderr, "Error reading file\n");
-                return -1;
-        } else {
-		fseek (read_reg, 0, SEEK_END);
-		int size = ftell(read_reg);
-		
-		if (size == 0) {
-			printf("Register file empty\n");
-			return -1;
-		}
-	}
-        fclose(read_reg);
-
-        read_reg = fopen("registers.txt", "w");
-        for (i = 0; i < MAX_REGISTERS; i++) {
-                fprintf(read_reg, "<R%d,%d>\n", i, rgf[i].reg_val);
-        }
-
-        fclose(read_reg);
-
-        return 0;
-
 }
 
 int
@@ -588,7 +519,6 @@ read_inst(int num_of_inst) {
 			}		
 				
                         pch = strtok (NULL, "<R,>\n");
-			printf("%s\n", pch);
                         if (pch != NULL) {
 				destination_register = atoi(pch);
 				if (destination_register < 0 || destination_register > 7) {
@@ -762,7 +692,7 @@ write () {
 int
 main () {
 
-	FILE *MIPSsim;
+	simulation = fopen("simulation.txt", "w");
 	int num_of_inst = 0;
 	int step = 0; 
 	int curr_inm_size = 0;
@@ -807,12 +737,12 @@ main () {
 	if (mem_val < 0 || mem_val > 63) {
 		return 0;
 	}
-
+/*
 	update_dam ();
 	if (update_dam_out == -1) {
 		return 0;
 	}
-
+*/
 	read_reg_out = read_reg ();
 	if (read_reg_out == -1) {
 		return 0;
@@ -823,12 +753,12 @@ main () {
 	if (reg_val < 0 || reg_val > 63) {
 		return 0;
 	}
-
+/*
 	update_reg ();
 	if (update_reg_out == -1) {
 		return 0;
 	}
-
+*/
 	read_inst_out = read_inst (num_of_inst);
 	if (read_inst_out == -1) {
 		return 0;
