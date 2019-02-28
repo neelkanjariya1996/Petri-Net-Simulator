@@ -656,19 +656,36 @@ load () {
 
 }
 
-void
-alu () {
+int
+alu (FILE *fp) {
 
 	int reg_val = 0;
 
-	if (aib[aib_head].opcode == 1)
+	if (aib[aib_head].opcode == 1) {
 		reg_val = aib[aib_head].src1 + aib[aib_head].src2;
-	else if (aib[aib_head].opcode == 2)
+		if (reg_val < 0 || reg_val > 63) {
+			fprintf(fp, "Register excedding the range 0 to 63\n");
+			return -1;
+		} 
+	} else if (aib[aib_head].opcode == 2) {
 		reg_val = aib[aib_head].src1 - aib[aib_head].src2;
-	else if (aib[aib_head].opcode == 3)
+		if (reg_val < 0 || reg_val > 63) {
+			fprintf(fp, "Register excedding the range 0 to 63\n");
+			return -1;
+		} 
+	} else if (aib[aib_head].opcode == 3) {
 		reg_val = aib[aib_head].src1 & aib[aib_head].src2;
-	else if (aib[aib_head].opcode == 4)
+		if (reg_val < 0 || reg_val > 63) {
+			fprintf(fp, "Register excedding the range 0 to 63\n");
+			return -1;
+		} 
+	} else if (aib[aib_head].opcode == 4) {
 		reg_val = aib[aib_head].src1 | aib[aib_head].src2;
+		if (reg_val < 0 || reg_val > 63) {
+			fprintf(fp, "Register excedding the range 0 to 63\n");
+			return -1;
+		} 
+	}
 
 	reb[reb_tail].dest_reg = aib[aib_head].dest_reg;
 	reb[reb_tail].reg_val = reg_val;
@@ -677,6 +694,8 @@ alu () {
 	reb_tail++;
 	aib_size--;
 	reb_size++;
+
+	return 0;
 
 }
 
@@ -717,6 +736,7 @@ main () {
 	int update_dam_out = 0;
 	int read_reg_out = 0;
 	int update_reg_out = 0;
+	int alu_out = 0;
 
 	memset(&inm_q, 0, sizeof(inm_q));
 	memset(&inb_q, 0, sizeof(inb_q));
@@ -776,6 +796,16 @@ main () {
 		return 0;
 	}
 	
+	decode();
+	issue1();
+	issue2();
+	addr();
+	load();
+	alu_out = alu(fp);
+	if (alu_out == -1) {
+		return 0;
+	}
+	
 	inm_size = num_of_inst;
 
 	while (inm_size != 0 || inb_size != 0 || lib_size != 0 || adb_size != 0 || aib_size != 0 || reb_size != 0) {
@@ -821,7 +851,7 @@ main () {
 		}
 
 		if (curr_aib_size != 0) {
-			alu();
+			alu(fp);
 		}
 
 		if (curr_reb_size != 0) {
